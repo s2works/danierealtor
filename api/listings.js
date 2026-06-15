@@ -183,6 +183,127 @@ function parseJsonLd(html) {
   return dedupe(listings);
 }
 
+/* Strategy 2 — embedded JSON state blobs (__NEXT_DATA__, __NUXT__,
+   __INITIAL_STATE__, or any application/json). Deep-walks for objects
+   that carry a price + address signature (handles RESO/DDF feeds). */
+
+var PRICE_KEYS   = ["listprice", "price", "currentprice", "askingprice", "originallistprice"];
+var ADDR_KEYS    = ["unparsedaddress", "streetaddress", "address", "addressline1", "fulladdress"];
+var CITY_KEYS    = ["city", "addresslocality", "municipality"];
+var REGION_KEYS  = ["stateorprovince", "addressregion", "province"];
+var BED_KEYS     = ["bedroomstotal", "bedrooms", "numberofbedrooms", "beds"];
+var BATH_KEYS    = ["bathroomstotalinteger", "bathroomstotal", "bathrooms", "numberofbathrooms", "baths"];
+var AREA_KEYS    = ["livingarea", "buildingareatotal", "squarefootage", "sqft", "floorsize"];
+var TYPE_KEYS    = ["propertytype", "propertysubtype", "type", "propertytypelabel"];
+var IMG_KEYS     = ["media", "photos", "images", "image", "primaryphoto", "photourl", "thumbnail"];
+var URL_KEYS     = ["url", "detailsurl", "permalink", "link", "href", "slug"];
+
+function getKey(obj, keys) {
+  for (var k in obj) {
+    if (!Object.prototype.hasOwnProperty.call(obj, k)) continue;
+    if (keys.indexOf(k.toLowerCase()) !== -1) return obj[k];
+  }
+  return undefined;
+}
+
+function extractImage(v) {
+  if (!v) return null;
+  if (typeof v === "string") return v.indexOf("http") === 0 ? v : null;
+  if (Array.isArray(v)) {
+    for (var i = 0; i < v.length; i++) {
+      var got = extractImage(v[i]);
+      if (got) return got;
+    }
+    return null;
+  }
+  if (typeof v === "object") {
+    return extractImage(v.MediaURL || v.url || v.contentUrl || v.src || v.Uri || v.href);
+  }
+  return null;
+}
+
+function looksLikeListingObj(obj) {
+  if (!obj || typeof obj !== "object" || Array.isArray(obj)) return false;
+  var hasPrice = getKey(obj, PRICE_KEYS) != null;
+  var hasAddr = getKey(obj, ADDR_KEYS) != null;
+  return hasPrice && hasAddr;
+}
+
+function normalizeObj(obj) {
+  var addr = getKey(obj, ADDR_KEYS);
+  if (addr && typeof addr === "object") addr = addr.streetAddress || addr.name;
+  var city = getKey(obj, CITY_KEYS);
+  var region = getKey(obj, REGION_KEYS);
+  if (!addr) return null;
+
+  var cityLine = [city, region].filter(Boolean).join(", ") || "New Brunswick";
+  var url = firstString(getKey(obj, URL_KEYS));
+  if (!url || url.indexOf("http") !== 0) url = AGENT_LISTINGS_URL;
+
+  var beds = pickNumber(getKey(obj, BED_KEYS));
+  var baths = pickNumber(getKey(obj, BATH_KEYS));
+  var area = getKey(obj, AREA_KEYS);
+  if (area && typeof area === "object") area = area.value;
+  var sqftNum = pickNumber(area);
+
+  var type = getKey(obj, TYPE_KEYS);
+  var img = extractImage(getKey(obj, IMG_KEYS));
+
+  return {
+    address: String(addr),
+    city: cityLine,
+    price: formatPrice(getKey(obj, PRICE_KEYS), getKey(obj, ["pricecurrency", "currency"])),
+    status: String(getKey(obj, ["standardstatus", "status", "mlsstatus"]) || "For Sale"),
+    type: type ? humanizeType(String(type)) : "Property",
+    beds: beds,
+    baths: baths,
+    sqft: sqftNum ? sqftNum.toLocaleString("en-CA") : null,
+    image: img || FALLBACK[0].image,
+    url: url
+  };
+}
+
+function deepCollect(node, out, depth) {
+  if (depth > 8 || node == null || typeof node !== "object") return;
+  if (Array.isArray(node)) {
+    node.forEach(function (n) { deepCollect(n, out, depth + 1); });
+    return;
+  }
+  if (looksLikeListingObj(node)) {
+    var n = normalizeObj(node);
+    if (n) out.push(n);
+  }
+  for (var k in node) {
+    if (Object.prototype.hasOwnProperty.call(node, k)) deepCollect(node[k], out, depth + 1);
+  }
+}
+
+function parseEmbeddedJson(html) {
+  var listings = [];
+  var blocks = [];
+
+  var nextData = /<script[^>]+id=["']__NEXT_DATA__["'][^>]*>([\s\S]*?)<\/script>/i.exec(html);
+  if (nextData) blocks.push(nextData[1]);
+
+  var jsonRe = /<script[^>]+type=["']application\/json["'][^>]*>([\s\S]*?)<\/script>/gi;
+  var jm;
+  while ((jm = jsonRe.exec(html)) !== null) blocks.push(jm[1]);
+
+  var stateRe = /(?:__INITIAL_STATE__|__NUXT__|__APOLLO_STATE__|window\.__DATA__)\s*=\s*(\{[\s\S]*?\});?\s*<\/script>/gi;
+  var sm;
+  while ((sm = stateRe.exec(html)) !== null) blocks.push(sm[1]);
+
+  blocks.forEach(function (raw) {
+    try {
+      var out = [];
+      deepCollect(JSON.parse(raw.trim()), out, 0);
+      listings = listings.concat(out);
+    } catch (e) { /* skip */ }
+  });
+
+  return dedupe(listings);
+}
+
 /* ---------- handler ---------- */
 
 module.exports = async function handler(req, res) {
@@ -191,7 +312,10 @@ module.exports = async function handler(req, res) {
   res.setHeader("Cache-Control", "s-maxage=900, stale-while-revalidate=86400");
   res.setHeader("Content-Type", "application/json; charset=utf-8");
 
-  var diagnostics = { fetched: false, status: null, jsonLd: 0, strategy: "fallback" };
+  var diagnostics = {
+    fetched: false, status: null, htmlLength: 0,
+    jsonLd: 0, embedded: 0, strategy: "fallback"
+  };
 
   try {
     var controller = new AbortController();
@@ -204,7 +328,8 @@ module.exports = async function handler(req, res) {
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
           "(KHTML, like Gecko) Chrome/124.0 Safari/537.36",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-CA,en;q=0.9,fr-CA;q=0.8"
+        "Accept-Language": "en-CA,en;q=0.9,fr-CA;q=0.8",
+        "Referer": "https://www.exitmoncton.ca/"
       }
     });
     clearTimeout(t);
@@ -214,21 +339,39 @@ module.exports = async function handler(req, res) {
 
     if (resp.ok) {
       var html = await resp.text();
+      diagnostics.htmlLength = html.length;
+
       var ld = parseJsonLd(html);
       diagnostics.jsonLd = ld.length;
 
-      if (ld.length) {
-        diagnostics.strategy = "json-ld";
+      var embedded = parseEmbeddedJson(html);
+      diagnostics.embedded = embedded.length;
+
+      var found = dedupe(ld.concat(embedded));
+
+      if (found.length) {
+        diagnostics.strategy = ld.length ? "json-ld" : "embedded-json";
         return res.status(200).json({
           source: "live",
           updatedAt: new Date().toISOString(),
-          count: ld.length,
-          listings: ld.slice(0, 12),
+          count: found.length,
+          listings: found.slice(0, 24),
           debug: debug ? diagnostics : undefined
         });
       }
 
-      if (debug) diagnostics.htmlSnippet = html.slice(0, 1500);
+      if (debug) {
+        // Strip tags so the snippet is readable for parser tuning.
+        var text = html.replace(/<script[\s\S]*?<\/script>/gi, " ")
+                       .replace(/<style[\s\S]*?<\/style>/gi, " ")
+                       .replace(/<[^>]+>/g, " ")
+                       .replace(/\s+/g, " ").trim();
+        diagnostics.priceMatches = (html.match(/\$\s?\d{2,3}(,\d{3})/g) || []).slice(0, 12);
+        diagnostics.hasNextData = /__NEXT_DATA__/.test(html);
+        diagnostics.textSnippet = text.slice(0, 2000);
+      }
+    } else if (debug) {
+      diagnostics.note = "Upstream returned non-OK status (likely bot protection).";
     }
   } catch (err) {
     diagnostics.error = String(err && err.message ? err.message : err);

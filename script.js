@@ -32,11 +32,13 @@
   function closeMenu() {
     if (!links) return;
     links.classList.remove("open");
+    document.body.classList.remove("menu-open");
     toggle.setAttribute("aria-expanded", "false");
   }
   if (toggle && links) {
     toggle.addEventListener("click", function () {
       var open = links.classList.toggle("open");
+      document.body.classList.toggle("menu-open", open);
       toggle.setAttribute("aria-expanded", String(open));
     });
     links.querySelectorAll("a").forEach(function (a) {
