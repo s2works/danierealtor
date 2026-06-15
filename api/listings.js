@@ -22,6 +22,16 @@ const SOURCE_URL =
 
 const AGENT_LISTINGS_URL = SOURCE_URL;
 
+/* realtor.ca — her agent profile drives a structured JSON API */
+const REALTOR_INDIVIDUAL_ID = "2236807";
+const REALTOR_API = "https://api2.realtor.ca/Listing.svc/PropertySearch_Post";
+const REALTOR_PROFILE =
+  "https://www.realtor.ca/agent/2236807/danie-gagnon-260-champlain-st-dieppe-new-brunswick-e1a1p3";
+
+var BROWSER_UA =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
+  "(KHTML, like Gecko) Chrome/124.0 Safari/537.36";
+
 const FALLBACK = [
   { address: "940 Frampton Lane", city: "Moncton, NB", price: "$399,900", status: "For Sale", type: "Single Family", beds: 4, baths: 2, sqft: "1,800", image: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=1000&q=80", url: AGENT_LISTINGS_URL },
   { address: "69 Barrieau Road", city: "Moncton, NB", price: "$389,900", status: "For Sale", type: "Multi-Family", beds: null, baths: null, sqft: "1,728", image: "https://images.unsplash.com/photo-1605146769289-440113cc3d00?auto=format&fit=crop&w=1000&q=80", url: AGENT_LISTINGS_URL },
@@ -70,7 +80,9 @@ function pickNumber() {
     var v = arguments[i];
     if (v == null) continue;
     if (typeof v === "object") v = v.value;
-    var n = Number(v);
+    // first numeric token: "3 + 1" -> 3, "1,280 sqft" -> 1280
+    var match = String(v).replace(/,/g, "").match(/\d+(?:\.\d+)?/);
+    var n = match ? Number(match[0]) : NaN;
     if (isFinite(n) && n > 0) return n;
   }
   return null;
@@ -304,6 +316,102 @@ function parseEmbeddedJson(html) {
   return dedupe(listings);
 }
 
+/* Strategy 0 (preferred) — realtor.ca structured JSON API,
+   filtered to Danie's IndividualID. Cleanest data when it isn't
+   blocked by realtor.ca's bot protection. */
+
+function splitRealtorAddress(text) {
+  // "100 Lancefield Drive|Moncton, New Brunswick E1G 0J5"
+  if (!text) return { line: null, city: "New Brunswick" };
+  var parts = String(text).split("|");
+  var line = parts[0] ? parts[0].trim() : null;
+  var city = "New Brunswick";
+  if (parts[1]) {
+    // keep "City, Province" — drop trailing postal code
+    city = parts[1].replace(/\s+[A-Z]\d[A-Z]\s?\d[A-Z]\d.*$/i, "").trim() || city;
+  }
+  return { line: line, city: city };
+}
+
+function normalizeRealtor(r) {
+  var p = r.Property || {};
+  var b = r.Building || {};
+  var addr = splitRealtorAddress(p.Address && p.Address.AddressText);
+  if (!addr.line) return null;
+
+  var photo = Array.isArray(p.Photo) && p.Photo[0]
+    ? (p.Photo[0].HighResPath || p.Photo[0].MedResPath || p.Photo[0].LowResPath)
+    : null;
+
+  var url = r.RelativeDetailsURL
+    ? "https://www.realtor.ca" + r.RelativeDetailsURL
+    : REALTOR_PROFILE;
+
+  var sqft = b.SizeInterior ? pickNumber(b.SizeInterior) : null;
+
+  return {
+    address: addr.line,
+    city: addr.city,
+    price: p.Price || "Contact for price",
+    status: "For Sale",
+    type: p.Type || b.Type || "Property",
+    beds: pickNumber(b.Bedrooms),
+    baths: pickNumber(b.BathroomTotal),
+    sqft: sqft ? sqft.toLocaleString("en-CA") : null,
+    image: photo || FALLBACK[0].image,
+    url: url
+  };
+}
+
+async function fetchRealtorCa(diagnostics) {
+  var body = new URLSearchParams({
+    CultureId: "1",
+    ApplicationId: "1",
+    PropertySearchTypeId: "0",
+    RecordsPerPage: "50",
+    CurrentPage: "1",
+    Sort: "6-D",
+    IndividualID: REALTOR_INDIVIDUAL_ID,
+    LongitudeMin: "-180", LongitudeMax: "180",
+    LatitudeMin: "-90", LatitudeMax: "90"
+  });
+
+  var controller = new AbortController();
+  var t = setTimeout(function () { controller.abort(); }, 8000);
+  try {
+    var resp = await fetch(REALTOR_API, {
+      method: "POST",
+      signal: controller.signal,
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        "User-Agent": BROWSER_UA,
+        "Accept": "*/*",
+        "Accept-Language": "en-CA,en;q=0.9,fr-CA;q=0.8",
+        "Origin": "https://www.realtor.ca",
+        "Referer": "https://www.realtor.ca/map"
+      },
+      body: body.toString()
+    });
+    clearTimeout(t);
+    diagnostics.realtorStatus = resp.status;
+    if (!resp.ok) return [];
+
+    var data = await resp.json();
+    var results = (data && data.Results) || [];
+    var out = [];
+    results.forEach(function (r) {
+      var n = normalizeRealtor(r);
+      if (n) out.push(n);
+    });
+    diagnostics.realtorCount = out.length;
+    return dedupe(out);
+  } catch (err) {
+    clearTimeout(t);
+    diagnostics.realtorError = String(err && err.message ? err.message : err);
+    return [];
+  }
+}
+
 /* ---------- handler ---------- */
 
 module.exports = async function handler(req, res) {
@@ -313,10 +421,30 @@ module.exports = async function handler(req, res) {
   res.setHeader("Content-Type", "application/json; charset=utf-8");
 
   var diagnostics = {
+    realtorStatus: null, realtorCount: 0,
     fetched: false, status: null, htmlLength: 0,
     jsonLd: 0, embedded: 0, strategy: "fallback"
   };
 
+  /* 0. Preferred source — realtor.ca structured API */
+  try {
+    var realtor = await fetchRealtorCa(diagnostics);
+    if (realtor.length) {
+      diagnostics.strategy = "realtor.ca";
+      return res.status(200).json({
+        source: "live",
+        provider: "realtor.ca",
+        updatedAt: new Date().toISOString(),
+        count: realtor.length,
+        listings: realtor.slice(0, 24),
+        debug: debug ? diagnostics : undefined
+      });
+    }
+  } catch (e) {
+    diagnostics.realtorError = String(e && e.message ? e.message : e);
+  }
+
+  /* 1. Backup source — scrape the EXIT Moncton page */
   try {
     var controller = new AbortController();
     var t = setTimeout(function () { controller.abort(); }, 8000);
@@ -353,6 +481,7 @@ module.exports = async function handler(req, res) {
         diagnostics.strategy = ld.length ? "json-ld" : "embedded-json";
         return res.status(200).json({
           source: "live",
+          provider: "exitmoncton.ca",
           updatedAt: new Date().toISOString(),
           count: found.length,
           listings: found.slice(0, 24),
