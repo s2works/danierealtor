@@ -414,6 +414,58 @@ async function fetchRealtorCa(diagnostics) {
 
 /* ---------- handler ---------- */
 
+var SITE_BASE = "https://www.exitmoncton.ca";
+
+async function fetchText(url, ms) {
+  var c = new AbortController();
+  var t = setTimeout(function () { c.abort(); }, ms || 5000);
+  try {
+    var r = await fetch(url, {
+      signal: c.signal,
+      headers: {
+        "User-Agent": BROWSER_UA,
+        "Accept": "*/*",
+        "X-Requested-With": "XMLHttpRequest",
+        "Referer": SOURCE_URL
+      }
+    });
+    clearTimeout(t);
+    var body = await r.text();
+    return { status: r.status, len: body.length, body: body };
+  } catch (e) {
+    clearTimeout(t);
+    return { error: String(e && e.message ? e.message : e) };
+  }
+}
+
+/* Discover the Incom mapSearchApp data route from its JS bundle + config */
+async function discoverIncom() {
+  var out = {};
+
+  var settings = await fetchText(SITE_BASE + "/mapsearchapp/default_settings/1", 5000);
+  out.default_settings = settings.error
+    ? settings
+    : { status: settings.status, body: (settings.body || "").slice(0, 1500) };
+
+  var bundle = await fetchText(
+    SITE_BASE + "/modules/mapSearchApp/dist/property-view-app/bundle.min.js", 6000);
+  if (bundle && bundle.body) {
+    out.bundleLen = bundle.len;
+    var routes = {};
+    var rr = /["'`](\/?mapsearchapp\/[A-Za-z0-9_\/\.\-]+)["'`]/g, mm;
+    while ((mm = rr.exec(bundle.body)) !== null) routes[mm[1]] = true;
+    var rr2 = /["'`]([A-Za-z0-9_\-]*(?:listing|propert|search|getmap|getlistings|results|json)[A-Za-z0-9_\-]*)["'`]/gi, m2;
+    while ((m2 = rr2.exec(bundle.body)) !== null) {
+      if (m2[1].length > 3 && m2[1].length < 60) routes[m2[1]] = true;
+    }
+    out.bundleRoutes = Object.keys(routes).slice(0, 80);
+  } else {
+    out.bundle = bundle;
+  }
+
+  return out;
+}
+
 module.exports = async function handler(req, res) {
   var debug = req.query && (req.query.debug === "1" || req.query.debug === "true");
 
@@ -512,12 +564,27 @@ module.exports = async function handler(req, res) {
                        .replace(/<[^>]+>/g, " ")
                        .replace(/\s+/g, " ").trim();
 
+        // Inline scripts that configure the mapSearchApp (route + params)
+        var inline = [];
+        var isre = /<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi, iim;
+        while ((iim = isre.exec(html)) !== null) {
+          var c = iim[1];
+          if (/propertyViewApp|mapsearchapp|agent_listings|propertyID|1364350/i.test(c)) {
+            inline.push(c.replace(/\s+/g, " ").trim().slice(0, 1400));
+          }
+        }
+
         diagnostics.scripts = scripts.slice(0, 40);
         diagnostics.iframes = iframes.slice(0, 20);
         diagnostics.endpointHints = Object.keys(hints).slice(0, 60);
+        diagnostics.inlineConfig = inline.slice(0, 4);
         diagnostics.priceMatches = (html.match(/\$\s?\d{2,3}(,\d{3})/g) || []).slice(0, 12);
         diagnostics.hasNextData = /__NEXT_DATA__/.test(html);
-        diagnostics.textSnippet = text.slice(0, 800);
+        diagnostics.textSnippet = text.slice(0, 600);
+
+        // Probe the Incom data routes server-side
+        try { diagnostics.discovery = await discoverIncom(); }
+        catch (e) { diagnostics.discoveryError = String(e && e.message ? e.message : e); }
       }
     } else if (debug) {
       diagnostics.note = "Upstream returned non-OK status (likely bot protection).";
