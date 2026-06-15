@@ -490,14 +490,34 @@ module.exports = async function handler(req, res) {
       }
 
       if (debug) {
-        // Strip tags so the snippet is readable for parser tuning.
+        // Surface the dynamic data source so we can call it directly.
+        var scripts = [];
+        var sre = /<script[^>]+src=["']([^"']+)["']/gi, sm2;
+        while ((sm2 = sre.exec(html)) !== null) scripts.push(sm2[1]);
+
+        var iframes = [];
+        var ire = /<iframe[^>]+src=["']([^"']+)["']/gi, im2;
+        while ((im2 = ire.exec(html)) !== null) iframes.push(im2[1]);
+
+        // Any URL or path that hints at a listings data feed.
+        var hints = {};
+        var hre = /["'`]([^"'`\s<>]*(?:listing|propert|idx|feed|ajax|\/api\/|\.json|search|ddf|mls)[^"'`\s<>]*)["'`]/gi, hm;
+        while ((hm = hre.exec(html)) !== null) {
+          var v = hm[1];
+          if (v.length > 4 && v.length < 200) hints[v] = true;
+        }
+
         var text = html.replace(/<script[\s\S]*?<\/script>/gi, " ")
                        .replace(/<style[\s\S]*?<\/style>/gi, " ")
                        .replace(/<[^>]+>/g, " ")
                        .replace(/\s+/g, " ").trim();
+
+        diagnostics.scripts = scripts.slice(0, 40);
+        diagnostics.iframes = iframes.slice(0, 20);
+        diagnostics.endpointHints = Object.keys(hints).slice(0, 60);
         diagnostics.priceMatches = (html.match(/\$\s?\d{2,3}(,\d{3})/g) || []).slice(0, 12);
         diagnostics.hasNextData = /__NEXT_DATA__/.test(html);
-        diagnostics.textSnippet = text.slice(0, 2000);
+        diagnostics.textSnippet = text.slice(0, 800);
       }
     } else if (debug) {
       diagnostics.note = "Upstream returned non-OK status (likely bot protection).";
