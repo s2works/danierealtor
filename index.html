@@ -14,9 +14,9 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230e1c2b'/%3E%3Ctext x='50' y='68' font-family='Georgia,serif' font-size='52' fill='%23c9a86a' text-anchor='middle'%3EDG%3C/text%3E%3C/svg%3E" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230d1b22'/%3E%3Ctext x='50' y='69' font-family='Georgia,serif' font-size='52' fill='%2334b0b8' text-anchor='middle'%3EDG%3C/text%3E%3C/svg%3E" />
 </head>
 <body>
 
@@ -81,8 +81,7 @@
           </div>
         </div>
         <div class="about__badge">
-          <span class="about__badge-num">EXIT</span>
-          <span class="about__badge-label">Realty Associates,<br />Brokerage*</span>
+          <img src="exit-logo-white.png" alt="EXIT Realty Associates, Brokerage" class="about__badge-logo" />
         </div>
       </div>
 
@@ -237,33 +236,35 @@
           <a href="https://www.facebook.com/ExitMoncton/" target="_blank" rel="noopener" aria-label="Facebook">Facebook</a>
           <a href="https://www.realtor.ca/agent/2236807/danie-gagnon-260-champlain-st-dieppe-new-brunswick-e1a1p3" target="_blank" rel="noopener" aria-label="REALTOR.ca">REALTOR.ca</a>
         </div>
+
+        <img src="exit-logo-white.png" alt="EXIT Realty Associates, Brokerage" class="contact__logo" />
       </div>
 
       <form class="contact__form reveal" id="contactForm" action="mailto:danie@exitmoncton.ca" method="post" enctype="text/plain">
         <div class="field">
-          <input type="text" id="name" name="name" required placeholder=" " />
           <label for="name">Your name</label>
+          <input type="text" id="name" name="name" required placeholder="e.g. Jane Doe" />
         </div>
         <div class="field">
-          <input type="email" id="email" name="email" required placeholder=" " />
           <label for="email">Email address</label>
+          <input type="email" id="email" name="email" required placeholder="you@email.com" />
         </div>
         <div class="field">
-          <input type="tel" id="phone" name="phone" placeholder=" " />
-          <label for="phone">Phone (optional)</label>
+          <label for="phone">Phone <span class="field__opt">(optional)</span></label>
+          <input type="tel" id="phone" name="phone" placeholder="(506) 000-0000" />
         </div>
         <div class="field">
+          <label for="interest">I'm interested in…</label>
           <select id="interest" name="interest">
-            <option value="Buying">I'm looking to buy</option>
-            <option value="Selling">I'm looking to sell</option>
+            <option value="Buying">Buying a home</option>
+            <option value="Selling">Selling a home</option>
             <option value="Both">Buying &amp; selling</option>
             <option value="Just curious">Just exploring</option>
           </select>
-          <label for="interest" class="field__label--static">I'm interested in…</label>
         </div>
         <div class="field">
-          <textarea id="message" name="message" rows="4" placeholder=" "></textarea>
           <label for="message">Tell me a little about your plans</label>
+          <textarea id="message" name="message" rows="4" placeholder="What are you hoping to do, and when?"></textarea>
         </div>
         <button type="submit" class="btn btn--gold btn--block">Send message</button>
         <p class="contact__formnote">Prefer to talk? Call or text <a href="tel:+15068669713">(506) 866-9713</a>.</p>
@@ -279,10 +280,12 @@
         <div>
           <strong>Danie Gagnon</strong>
           <span>REALTOR® · EXIT Realty Associates, Brokerage*</span>
+          <img src="exit-logo-white.png" alt="EXIT Realty Associates" class="footer__logo" />
         </div>
       </div>
       <nav class="footer__links" aria-label="Footer">
         <a href="#about">About</a>
+        <a href="#approach">Approach</a>
         <a href="#listings">Listings</a>
         <a href="#areas">Areas</a>
         <a href="#contact">Contact</a>

@@ -6,7 +6,7 @@ A modern, elegant, mobile-first landing page for **Danie Gagnon**, REALTOR® wit
 ## Highlights
 
 - **Single-page, no build step** — plain HTML/CSS/JS, deploys anywhere (Vercel, Netlify, GitHub Pages, any static host).
-- **Sleek, fresh design** — ink-navy + warm-gold palette, Cormorant Garamond / Manrope typography.
+- **Sleek, on-brand design** — EXIT teal + teal-ink + cream palette, Fraunces / Manrope typography, EXIT Realty logo on dark sections.
 - **Smooth section transitions** — scroll-reveal animations, animated stat counters, hero parallax & zoom, sticky nav, scroll-progress bar.
 - **Listings CTA** — a section linking out to Danie's live EXIT Realty listings page (kept current by the brokerage).
 - **Fully responsive** — slide-in mobile menu, fluid type, single-column layouts on small screens.

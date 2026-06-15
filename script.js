@@ -47,6 +47,12 @@
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape") closeMenu();
     });
+    // Tap outside the panel (on the scrim) to close
+    document.addEventListener("click", function (e) {
+      if (!document.body.classList.contains("menu-open")) return;
+      if (nav.contains(e.target)) return;
+      closeMenu();
+    });
   }
 
   /* ---------- Reveal on scroll ---------- */
