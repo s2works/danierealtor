@@ -106,9 +106,9 @@
   var prevBtn = document.getElementById("prevBtn");
   var nextBtn = document.getElementById("nextBtn");
   var dotsWrap = document.getElementById("carouselDots");
-  var data = window.DANIE_LISTINGS || [];
 
-  if (track && data.length) {
+  function initCarousel(data) {
+    if (!track || !data || !data.length) return;
     /* Build cards */
     function spec(value, label) {
       if (value === null || value === undefined || value === "") return "";
@@ -260,4 +260,27 @@
     /* Recompute once images/fonts settle */
     window.addEventListener("load", function () { buildDots(); update(); });
   }
+
+  /* Load live listings from the serverless proxy; fall back to static data */
+  (function loadListings() {
+    if (!track) return;
+    var fallback = window.DANIE_LISTINGS || [];
+
+    if (typeof fetch !== "function") { initCarousel(fallback); return; }
+
+    var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+    var timer = controller ? setTimeout(function () { controller.abort(); }, 6000) : null;
+
+    fetch("/api/listings", controller ? { signal: controller.signal } : undefined)
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+      .then(function (payload) {
+        if (timer) clearTimeout(timer);
+        var live = payload && payload.listings;
+        initCarousel(live && live.length ? live : fallback);
+      })
+      .catch(function () {
+        if (timer) clearTimeout(timer);
+        initCarousel(fallback);
+      });
+  })();
 })();
