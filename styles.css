@@ -747,6 +747,10 @@ body.menu-open::before {
   background: rgba(255,255,255,0.1);
   box-shadow: 0 0 0 3px rgba(201,168,106,0.18);
 }
+.form-status { font-size: 0.9rem; margin: 1rem 0 0; text-align: center; line-height: 1.5; }
+.form-status:empty { display: none; }
+.form-status--success { color: #7fd6a6; font-weight: 600; }
+.form-status--error { color: #f0a3a3; font-weight: 600; }
 .contact__formnote { font-size: 0.85rem; color: rgba(255,255,255,0.6); margin: 1rem 0 0; text-align: center; }
 .contact__formnote a { color: var(--accent); font-weight: 600; }
 .contact__logo { width: 168px; height: auto; margin-top: 2.4rem; opacity: 0.9; }
