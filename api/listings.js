@@ -466,6 +466,97 @@ async function discoverIncom() {
   return out;
 }
 
+async function fetchFull(url, opts, ms) {
+  var c = new AbortController();
+  var t = setTimeout(function () { c.abort(); }, ms || 6000);
+  try {
+    var r = await fetch(url, Object.assign({ signal: c.signal }, opts));
+    clearTimeout(t);
+    var body = await r.text();
+    var cookie = "";
+    try {
+      cookie = r.headers.getSetCookie
+        ? r.headers.getSetCookie().join("; ")
+        : (r.headers.get("set-cookie") || "");
+    } catch (e) { /* ignore */ }
+    return { status: r.status, len: body.length, body: body, cookie: cookie };
+  } catch (e) {
+    clearTimeout(t);
+    return { error: String(e && e.message ? e.message : e) };
+  }
+}
+
+/* Probe the Incom /mapsearchapp/search/ endpoint with several payload
+   shapes to discover the working contract for her broker listings. */
+async function probeSearch() {
+  var out = { attempts: [] };
+
+  var ds = await fetchFull(SITE_BASE + "/mapsearchapp/default_settings/1", {
+    headers: {
+      "User-Agent": BROWSER_UA, "Accept": "*/*",
+      "X-Requested-With": "XMLHttpRequest", "Referer": SOURCE_URL
+    }
+  }, 6000);
+
+  var token = null, broker = 3493, cookie = (ds && ds.cookie) || "";
+  if (ds && ds.body) {
+    var mt = ds.body.match(/"csrfToken":"([^"]+)"/); if (mt) token = mt[1];
+    var mb = ds.body.match(/"Brokers":\{"\$in":\[(\d+)\]/); if (mb) broker = Number(mb[1]);
+  }
+  out.token = token;
+  out.broker = broker;
+  out.cookie = cookie ? cookie.slice(0, 60) : "";
+
+  var query = { Brokers: { $in: [broker] } };
+  var qstr = JSON.stringify(query);
+
+  var H = {
+    "User-Agent": BROWSER_UA,
+    "Accept": "application/json, text/plain, */*",
+    "X-Requested-With": "XMLHttpRequest",
+    "Referer": SOURCE_URL,
+    "Origin": SITE_BASE
+  };
+  if (cookie) H["Cookie"] = cookie;
+  if (token) H["X-CSRF-Token"] = token;
+
+  var url = SITE_BASE + "/mapsearchapp/search/";
+
+  function record(label, r) {
+    out.attempts.push({
+      label: label,
+      status: r.status, len: r.len, error: r.error,
+      snippet: r.body ? r.body.slice(0, 500) : null
+    });
+  }
+
+  var variants = [
+    ["json-query", {
+      method: "POST",
+      headers: Object.assign({}, H, { "Content-Type": "application/json" }),
+      body: JSON.stringify({ query: query, start: 0, limit: 24, sort: "newest", sale: 1, rent: 0, csrfToken: token })
+    }],
+    ["form-query", {
+      method: "POST",
+      headers: Object.assign({}, H, { "Content-Type": "application/x-www-form-urlencoded" }),
+      body: "query=" + encodeURIComponent(qstr) + "&csrfToken=" + encodeURIComponent(token || "") + "&start=0&limit=24&sort=newest"
+    }],
+    ["form-featuredQuery", {
+      method: "POST",
+      headers: Object.assign({}, H, { "Content-Type": "application/x-www-form-urlencoded" }),
+      body: "featuredQuery=" + encodeURIComponent(qstr) + "&csrfToken=" + encodeURIComponent(token || "") + "&start=0&limit=24"
+    }],
+    ["get", { method: "GET", headers: H }]
+  ];
+
+  var results = await Promise.all(variants.map(function (v) {
+    return fetchFull(url, v[1], 7000).then(function (r) { return [v[0], r]; });
+  }));
+  results.forEach(function (pair) { record(pair[0], pair[1]); });
+
+  return out;
+}
+
 module.exports = async function handler(req, res) {
   var debug = req.query && (req.query.debug === "1" || req.query.debug === "true");
 
@@ -582,9 +673,9 @@ module.exports = async function handler(req, res) {
         diagnostics.hasNextData = /__NEXT_DATA__/.test(html);
         diagnostics.textSnippet = text.slice(0, 600);
 
-        // Probe the Incom data routes server-side
-        try { diagnostics.discovery = await discoverIncom(); }
-        catch (e) { diagnostics.discoveryError = String(e && e.message ? e.message : e); }
+        // Probe the Incom /mapsearchapp/search/ endpoint contract
+        try { diagnostics.search = await probeSearch(); }
+        catch (e) { diagnostics.searchError = String(e && e.message ? e.message : e); }
       }
     } else if (debug) {
       diagnostics.note = "Upstream returned non-OK status (likely bot protection).";
