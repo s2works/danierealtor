@@ -557,6 +557,66 @@ async function probeSearch() {
   return out;
 }
 
+/* Mine the app bundle for the real data URL + inspect the search response */
+async function deepProbe() {
+  var out = {};
+
+  var bundleP = fetchText(
+    SITE_BASE + "/modules/mapSearchApp/dist/property-view-app/bundle.min.js", 8000
+  ).then(function (b) {
+    var r = { len: b.len };
+    if (!b.body) { r.error = b.error; return r; }
+    var body = b.body, seen = {};
+    var re = /["'`](\/[A-Za-z0-9_\-\/]{3,70})["'`]/g, m;
+    while ((m = re.exec(body)) !== null) {
+      if (/search|listing|propert|getall|results|feed|data|ajax|json|api|broker/i.test(m[1])) seen[m[1]] = true;
+    }
+    r.paths = Object.keys(seen).slice(0, 70);
+    var ctx = {};
+    var re2 = /(?:url\s*:\s*|\.ajax\(\s*\{?\s*url\s*:\s*|\.post\(\s*|\.get\(\s*|fetch\(\s*|axios\.[a-z]+\(\s*)["'`]([^"'`]{2,90})["'`]/gi, c;
+    while ((c = re2.exec(body)) !== null) ctx[c[1]] = true;
+    r.ajaxUrls = Object.keys(ctx).slice(0, 50);
+    return r;
+  }).catch(function (e) { return { error: String(e && e.message ? e.message : e) }; });
+
+  var searchP = fetchFull(SITE_BASE + "/mapsearchapp/default_settings/1", {
+    headers: { "User-Agent": BROWSER_UA, "Accept": "*/*", "X-Requested-With": "XMLHttpRequest", "Referer": SOURCE_URL }
+  }, 5000).then(function (ds) {
+    var token = null, cookie = (ds && ds.cookie) || "";
+    if (ds && ds.body) { var mt = ds.body.match(/"csrfToken":"([^"]+)"/); if (mt) token = mt[1]; }
+    var H = {
+      "User-Agent": BROWSER_UA, "Accept": "application/json, text/plain, */*",
+      "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest",
+      "Referer": "https://www.exitmoncton.ca/mapsearchapp/search/", "Origin": SITE_BASE
+    };
+    if (cookie) H["Cookie"] = cookie;
+    if (token) H["X-CSRF-Token"] = token;
+    return fetchFull(SITE_BASE + "/mapsearchapp/search/", {
+      method: "POST", headers: H,
+      body: JSON.stringify({ query: { Brokers: { $in: [3493] } }, start: 0, limit: 24, sort: "newest" })
+    }, 8000).then(function (r) {
+      var body = r.body || "";
+      var i = body.search(/\$\s?\d{2,3},\d{3}/);
+      return {
+        status: r.status, len: r.len, error: r.error,
+        priceMatches: (body.match(/\$\s?\d{2,3}(?:,\d{3})/g) || []).slice(0, 15),
+        keys: {
+          address: /address/i.test(body), mls: /mls/i.test(body),
+          beds: /bedroom|beds/i.test(body), brokers: /brokers/i.test(body),
+          listingId: /listingid|listing_id/i.test(body)
+        },
+        ld: parseJsonLd(body).length, emb: parseEmbeddedJson(body).length,
+        snippet: i >= 0 ? body.slice(Math.max(0, i - 250), i + 350).replace(/\s+/g, " ") : null
+      };
+    });
+  }).catch(function (e) { return { error: String(e && e.message ? e.message : e) }; });
+
+  var res = await Promise.all([bundleP, searchP]);
+  out.bundle = res[0];
+  out.searchResp = res[1];
+  return out;
+}
+
 module.exports = async function handler(req, res) {
   var debug = req.query && (req.query.debug === "1" || req.query.debug === "true");
 
@@ -673,9 +733,9 @@ module.exports = async function handler(req, res) {
         diagnostics.hasNextData = /__NEXT_DATA__/.test(html);
         diagnostics.textSnippet = text.slice(0, 600);
 
-        // Probe the Incom /mapsearchapp/search/ endpoint contract
-        try { diagnostics.search = await probeSearch(); }
-        catch (e) { diagnostics.searchError = String(e && e.message ? e.message : e); }
+        // Mine the bundle for the data URL + inspect search response
+        try { diagnostics.deep = await deepProbe(); }
+        catch (e) { diagnostics.deepError = String(e && e.message ? e.message : e); }
       }
     } else if (debug) {
       diagnostics.note = "Upstream returned non-OK status (likely bot protection).";
