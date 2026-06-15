@@ -1,28 +1,28 @@
 /* ============================================================
    Danie Gagnon — REALTOR® landing page
-   Palette: teal-ink · EXIT brand teal · cream  (Fraunces + Manrope)
+   Palette: aubergine · vibrant rose · blush  (Fraunces + Manrope)
    ============================================================ */
 
 :root {
-  /* EXIT Realty brand-aligned palette: teal-ink + brand teal accent */
-  --ink:        #0c1a21;
-  --ink-soft:   #152a32;
-  --accent:        #2f9aa6;  /* EXIT brand teal, refined */
-  --accent-deep:   #1d6e78;
-  --accent-bright: #18bf86;  /* mint pop, used sparingly */
-  --cream:      #f5f2ea;
-  --cream-2:    #ece5d7;
+  /* Aubergine & Rose: rich plum base, vibrant rose accent, blush light */
+  --ink:        #241327;
+  --ink-soft:   #3a2240;
+  --accent:        #f0457f;  /* vibrant rose-magenta */
+  --accent-deep:   #c82e62;
+  --accent-bright: #ff6fa3;  /* lighter rose pop */
+  --cream:      #f8f1f1;
+  --cream-2:    #f0e3e7;
   --paper:      #ffffff;
-  --text:       #23323a;
-  --muted:      #66747c;
-  --line:       rgba(12, 26, 33, 0.10);
+  --text:       #34232f;
+  --muted:      #8a7884;
+  --line:       rgba(36, 19, 39, 0.11);
 
   --font-serif: "Fraunces", Georgia, "Times New Roman", serif;
   --font-sans:  "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
 
   --radius: 18px;
-  --shadow: 0 24px 60px -28px rgba(12, 26, 33, 0.45);
-  --shadow-sm: 0 12px 30px -18px rgba(12, 26, 33, 0.4);
+  --shadow: 0 24px 60px -28px rgba(36, 19, 39, 0.45);
+  --shadow-sm: 0 12px 30px -18px rgba(36, 19, 39, 0.4);
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --container: 1200px;
 }
@@ -173,7 +173,7 @@ body.menu-open::before {
   content: "";
   position: fixed;
   inset: 0;
-  background: rgba(7, 20, 26, 0.55);
+  background: rgba(20, 8, 24, 0.6);
   z-index: 880;
 }
 
@@ -275,8 +275,8 @@ body.menu-open::before {
 .hero__overlay {
   position: absolute; inset: 0;
   background:
-    linear-gradient(120deg, rgba(12,26,33,0.88) 0%, rgba(12,26,33,0.55) 50%, rgba(12,26,33,0.30) 100%),
-    linear-gradient(to top, rgba(12,26,33,0.9), transparent 45%);
+    linear-gradient(120deg, rgba(36,19,39,0.88) 0%, rgba(36,19,39,0.55) 50%, rgba(36,19,39,0.30) 100%),
+    linear-gradient(to top, rgba(36,19,39,0.9), transparent 45%);
 }
 .hero__content {
   position: relative;
@@ -343,7 +343,7 @@ body.menu-open::before {
   overflow: hidden;
   aspect-ratio: 4 / 5;
   box-shadow: var(--shadow);
-  background: linear-gradient(155deg, var(--ink) 0%, var(--ink-soft) 50%, #24545c 100%);
+  background: linear-gradient(155deg, var(--ink) 0%, var(--ink-soft) 50%, #6e2b50 100%);
 }
 .about__monogram {
   position: absolute; inset: 0;
@@ -498,7 +498,7 @@ body.menu-open::before {
   position: absolute;
   bottom: 0; left: 0; right: 0;
   padding: 2.2rem 1.2rem 0.9rem;
-  background: linear-gradient(to top, rgba(12,26,33,0.85), transparent);
+  background: linear-gradient(to top, rgba(36,19,39,0.85), transparent);
   color: var(--paper);
   font-family: var(--font-serif);
   font-size: 1.7rem;
@@ -567,7 +567,7 @@ body.menu-open::before {
   width: 9px; height: 9px;
   border-radius: 50%;
   border: 0;
-  background: rgba(12,26,33,0.2);
+  background: rgba(36,19,39,0.2);
   cursor: pointer;
   padding: 0;
   transition: width 0.4s var(--ease), background 0.4s var(--ease);
@@ -581,12 +581,12 @@ body.menu-open::before {
   overflow: hidden;
   padding: clamp(4.5rem, 10vw, 8rem) clamp(1.25rem, 5vw, 4rem);
   background:
-    linear-gradient(120deg, rgba(12,26,33,0.92), rgba(12,26,33,0.78)),
+    linear-gradient(120deg, rgba(36,19,39,0.92), rgba(36,19,39,0.78)),
     url("https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1800&q=70") center/cover no-repeat;
 }
 .cta__overlay {
   position: absolute; inset: 0; z-index: -1;
-  background: radial-gradient(circle at 80% 20%, rgba(201,168,106,0.18), transparent 55%);
+  background: radial-gradient(circle at 80% 20%, rgba(240,69,127,0.18), transparent 55%);
 }
 .cta__inner {
   max-width: 760px;
@@ -634,7 +634,7 @@ body.menu-open::before {
 .area::after {
   content: "";
   position: absolute; inset: 0; z-index: -1;
-  background: linear-gradient(to top, rgba(12,26,33,0.85) 5%, rgba(12,26,33,0.15) 70%);
+  background: linear-gradient(to top, rgba(36,19,39,0.85) 5%, rgba(36,19,39,0.15) 70%);
 }
 .area:hover::before { transform: scale(1.1); }
 .area h3 { font-size: 1.9rem; }
@@ -755,14 +755,14 @@ body.menu-open::before {
   outline: none;
   border-color: var(--accent);
   background: rgba(255,255,255,0.1);
-  box-shadow: 0 0 0 3px rgba(47,154,166,0.18);
+  box-shadow: 0 0 0 3px rgba(240,69,127,0.18);
 }
 .contact__formnote { font-size: 0.85rem; color: rgba(255,255,255,0.6); margin: 1rem 0 0; text-align: center; }
 .contact__formnote a { color: var(--accent); font-weight: 600; }
 .contact__logo { width: 168px; height: auto; margin-top: 2.4rem; opacity: 0.9; }
 
 /* ---------- Footer ---------- */
-.footer { background: #07141a; color: rgba(255,255,255,0.7); }
+.footer { background: #190d1d; color: rgba(255,255,255,0.7); }
 .footer__inner {
   max-width: var(--container);
   margin-inline: auto;
