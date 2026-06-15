@@ -36,9 +36,9 @@
 
       <nav class="nav__links" id="navLinks" aria-label="Primary">
         <a href="#about">About</a>
+        <a href="#approach">Approach</a>
         <a href="#listings">Listings</a>
         <a href="#areas">Areas</a>
-        <a href="#approach">Approach</a>
         <a href="#contact" class="nav__cta">Contact</a>
       </nav>
 
@@ -115,8 +115,8 @@
   <section class="stats">
     <div class="stats__grid">
       <div class="stat reveal">
-        <span class="stat__num" data-count="7">0</span>
-        <span class="stat__label">Active Listings</span>
+        <span class="stat__num" data-count="50">0</span><span class="stat__plus">+</span>
+        <span class="stat__label">Properties Sold</span>
       </div>
       <div class="stat reveal">
         <span class="stat__num" data-count="6">0</span><span class="stat__plus">+</span>
@@ -130,69 +130,6 @@
         <span class="stat__num stat__num--word">EXIT</span>
         <span class="stat__label">Realty Associates</span>
       </div>
-    </div>
-  </section>
-
-  <!-- ===== Listings carousel ===== -->
-  <section class="listings section" id="listings">
-    <div class="listings__head reveal">
-      <div>
-        <p class="eyebrow">Featured Properties</p>
-        <h2 class="section__title">Current Listings</h2>
-      </div>
-      <p class="listings__note">
-        A selection of homes I'm representing. New listings are added regularly —
-        <a href="https://www.exitmoncton.ca/properties_for_agent/1364350/all" target="_blank" rel="noopener">
-          view all on EXIT Moncton ↗
-        </a>
-      </p>
-    </div>
-
-    <div class="carousel" id="carousel">
-      <button class="carousel__arrow carousel__arrow--prev" id="prevBtn" aria-label="Previous listing">
-        <svg viewBox="0 0 24 24" width="22" height="22"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-
-      <div class="carousel__viewport" id="carouselViewport">
-        <div class="carousel__track" id="carouselTrack">
-          <!-- cards injected by listings.js -->
-        </div>
-      </div>
-
-      <button class="carousel__arrow carousel__arrow--next" id="nextBtn" aria-label="Next listing">
-        <svg viewBox="0 0 24 24" width="22" height="22"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-    </div>
-
-    <div class="carousel__dots" id="carouselDots" aria-label="Listing navigation"></div>
-  </section>
-
-  <!-- ===== Service areas ===== -->
-  <section class="areas section" id="areas">
-    <div class="areas__head reveal">
-      <p class="eyebrow">Where I Work</p>
-      <h2 class="section__title">Serving Greater Moncton &amp; beyond</h2>
-      <p class="areas__lead">Local knowledge across southeastern New Brunswick's most sought-after communities.</p>
-    </div>
-    <div class="areas__grid">
-      <article class="area reveal" style="--bg:url('https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=900&q=70')">
-        <h3>Moncton</h3><span>The Hub City</span>
-      </article>
-      <article class="area reveal" style="--bg:url('https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=900&q=70')">
-        <h3>Dieppe</h3><span>Growing &amp; vibrant</span>
-      </article>
-      <article class="area reveal" style="--bg:url('https://images.unsplash.com/photo-1449844908441-8829872d2607?auto=format&fit=crop&w=900&q=70')">
-        <h3>Riverview</h3><span>Riverside living</span>
-      </article>
-      <article class="area reveal" style="--bg:url('https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=900&q=70')">
-        <h3>Shediac</h3><span>Coastal charm</span>
-      </article>
-      <article class="area reveal" style="--bg:url('https://images.unsplash.com/photo-1576941089067-2de3c901e126?auto=format&fit=crop&w=900&q=70')">
-        <h3>Memramcook</h3><span>Heritage &amp; calm</span>
-      </article>
-      <article class="area reveal" style="--bg:url('https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=900&q=70')">
-        <h3>Bouctouche</h3><span>By the dunes</span>
-      </article>
     </div>
   </section>
 
@@ -222,6 +159,52 @@
         <div class="approach__icon">04</div>
         <h3>Local strength</h3>
         <p>Deep roots in the region and the full backing of EXIT Realty Associates' network and resources.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ===== Current listings CTA ===== -->
+  <section class="cta" id="listings">
+    <div class="cta__overlay" aria-hidden="true"></div>
+    <div class="cta__inner reveal">
+      <p class="eyebrow eyebrow--light">Current Listings</p>
+      <h2 class="section__title section__title--light">Explore Danie's active properties</h2>
+      <p class="cta__lead">
+        Every home Danie is currently representing across Greater Moncton — with photos,
+        pricing and full details — is kept up to date on her EXIT Realty listings page.
+      </p>
+      <a href="https://www.exitmoncton.ca/properties_for_agent/1364350/all"
+         target="_blank" rel="noopener" class="btn btn--gold btn--lg">
+        View all listings ↗
+      </a>
+    </div>
+  </section>
+
+  <!-- ===== Service areas ===== -->
+  <section class="areas section" id="areas">
+    <div class="areas__head reveal">
+      <p class="eyebrow">Where I Work</p>
+      <h2 class="section__title">Serving Greater Moncton &amp; beyond</h2>
+      <p class="areas__lead">Local knowledge across southeastern New Brunswick's most sought-after communities.</p>
+    </div>
+    <div class="areas__grid">
+      <article class="area reveal" style="--bg:url('https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=900&q=70')">
+        <h3>Moncton</h3><span>The Hub City</span>
+      </article>
+      <article class="area reveal" style="--bg:url('https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=900&q=70')">
+        <h3>Dieppe</h3><span>Growing &amp; vibrant</span>
+      </article>
+      <article class="area reveal" style="--bg:url('https://images.unsplash.com/photo-1449844908441-8829872d2607?auto=format&fit=crop&w=900&q=70')">
+        <h3>Riverview</h3><span>Riverside living</span>
+      </article>
+      <article class="area reveal" style="--bg:url('https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=900&q=70')">
+        <h3>Shediac</h3><span>Coastal charm</span>
+      </article>
+      <article class="area reveal" style="--bg:url('https://images.unsplash.com/photo-1576941089067-2de3c901e126?auto=format&fit=crop&w=900&q=70')">
+        <h3>Memramcook</h3><span>Heritage &amp; calm</span>
+      </article>
+      <article class="area reveal" style="--bg:url('https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=900&q=70')">
+        <h3>Bouctouche</h3><span>By the dunes</span>
       </article>
     </div>
   </section>
@@ -311,7 +294,6 @@
     </div>
   </footer>
 
-  <script src="listings.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

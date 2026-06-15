@@ -103,6 +103,7 @@ h1, h2, h3 {
   will-change: transform;
 }
 .btn:hover { transform: translateY(-3px); }
+.btn--lg { padding: 1.15rem 2.6rem; font-size: 1rem; }
 .btn--gold { background: var(--gold); color: var(--ink); box-shadow: var(--shadow-sm); }
 .btn--gold:hover { background: var(--gold-deep); }
 .btn--ghost { background: transparent; color: var(--paper); border-color: rgba(255,255,255,0.55); }
@@ -543,6 +544,33 @@ h1, h2, h3 {
   transition: width 0.4s var(--ease), background 0.4s var(--ease);
 }
 .carousel__dots button.active { width: 28px; border-radius: 100px; background: var(--gold-deep); }
+
+/* ---------- Current listings CTA ---------- */
+.cta {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: clamp(4.5rem, 10vw, 8rem) clamp(1.25rem, 5vw, 4rem);
+  background:
+    linear-gradient(120deg, rgba(14,28,43,0.92), rgba(14,28,43,0.78)),
+    url("https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1800&q=70") center/cover no-repeat;
+}
+.cta__overlay {
+  position: absolute; inset: 0; z-index: -1;
+  background: radial-gradient(circle at 80% 20%, rgba(201,168,106,0.18), transparent 55%);
+}
+.cta__inner {
+  max-width: 760px;
+  margin-inline: auto;
+  text-align: center;
+  color: var(--paper);
+}
+.cta__lead {
+  color: rgba(255,255,255,0.82);
+  font-size: clamp(1.02rem, 1.6vw, 1.18rem);
+  max-width: 56ch;
+  margin: 0 auto 2.4rem;
+}
 
 /* ---------- Areas ---------- */
 .areas { background: var(--cream-2); max-width: none; }
