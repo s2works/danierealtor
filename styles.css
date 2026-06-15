@@ -293,18 +293,21 @@ body.menu-open::before {
   font-weight: 700;
   color: var(--accent);
   margin: 0 0 1.4rem;
+  text-shadow: 0 1px 10px rgba(0,0,0,0.45);
 }
 .hero__title {
   font-size: clamp(2.8rem, 7.5vw, 5.6rem);
   font-weight: 600;
   letter-spacing: -0.5px;
+  text-shadow: 0 2px 22px rgba(0,0,0,0.5), 0 1px 3px rgba(0,0,0,0.35);
 }
 .hero__title em { color: var(--accent); font-style: italic; }
 .hero__lead {
   font-size: clamp(1.05rem, 1.6vw, 1.2rem);
-  color: rgba(255,255,255,0.88);
+  color: rgba(255,255,255,0.9);
   max-width: 600px;
   margin: 1.8rem auto 2.4rem;
+  text-shadow: 0 1px 14px rgba(0,0,0,0.5);
 }
 .hero__actions { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
 
@@ -845,6 +848,12 @@ body.menu-open::before {
   .hero__actions .btn { flex: 1; min-width: 0; }
   .hero { padding-top: 6rem; }
   .hero__lead { font-size: 1rem; }
+  /* Darker overlay on phones so the centered text stays legible */
+  .hero__overlay {
+    background:
+      linear-gradient(to bottom, rgba(14,28,43,0.6) 0%, rgba(14,28,43,0.78) 100%),
+      radial-gradient(ellipse at center, rgba(14,28,43,0.35) 0%, rgba(14,28,43,0.7) 100%);
+  }
   .about__badge { right: 8px; bottom: -18px; padding: 0.7rem 0.9rem; }
   .about__badge-logo { width: 92px; }
   .contact__details a { font-size: 1.2rem; word-break: break-word; }
