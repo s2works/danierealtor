@@ -748,23 +748,39 @@ body.menu-open::before {
   margin-bottom: 1.8rem;
 }
 .preview-btn {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   flex: 1 1 260px;
   max-width: 320px;
+  min-height: 200px;
   display: flex;
   flex-direction: column;
+  justify-content: flex-end;
   gap: 0.3rem;
   text-align: left;
-  padding: 1.35rem 1.5rem;
+  padding: 1.4rem 1.5rem;
   border-radius: var(--radius);
-  background: rgba(255,255,255,0.07);
   border: 1px solid rgba(255,255,255,0.18);
-  backdrop-filter: blur(4px);
-  transition: transform 0.35s var(--ease), background 0.35s var(--ease), border-color 0.35s var(--ease);
+  background-image: var(--img);
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.4s var(--ease), border-color 0.4s var(--ease);
+}
+.preview-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(to top, rgba(14,28,43,0.92) 12%, rgba(14,28,43,0.45) 60%, rgba(14,28,43,0.25));
+  transition: background 0.4s var(--ease);
 }
 .preview-btn:hover {
   transform: translateY(-5px);
-  background: rgba(255,255,255,0.13);
   border-color: var(--accent);
+}
+.preview-btn:hover::before {
+  background: linear-gradient(to top, rgba(14,28,43,0.92) 12%, rgba(14,28,43,0.6) 60%, rgba(11,21,33,0.4));
 }
 .preview-btn__eyebrow {
   font-size: 0.68rem; font-weight: 700; letter-spacing: 0.18em;
