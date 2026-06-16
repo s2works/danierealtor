@@ -565,8 +565,11 @@ body.menu-open::before {
 .carousel__dots button.active { width: 28px; border-radius: 100px; background: var(--accent-deep); }
 
 /* ---------- Recent listings (Google Sheet driven) ---------- */
-.listings__head { max-width: 720px; }
-.listings__lead { color: var(--muted); font-size: 1.05rem; margin: 0; }
+/* Tighter top gap after the Approach section (still comfortable on mobile) */
+.listings.section { padding-top: clamp(2.25rem, 4.5vw, 4rem); }
+.listings__head { max-width: 720px; margin-inline: auto; text-align: center; }
+.listings__head .eyebrow { justify-content: center; }
+.listings__lead { color: var(--muted); font-size: 1.05rem; margin: 0 auto; }
 
 .listings__carousel { position: relative; margin-top: clamp(2rem, 4vw, 3rem); }
 
