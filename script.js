@@ -268,6 +268,56 @@
       if (emptyEl) emptyEl.hidden = true;
       listingsGrid.innerHTML = items.map(card).join("");
       registerReveal(Array.prototype.slice.call(listingsGrid.querySelectorAll(".reveal")));
+      updateEdges();
+    }
+
+    /* ----- Carousel: hover edges rotate, click advances ----- */
+    var prevBtn = document.getElementById("listingsPrev");
+    var nextBtn = document.getElementById("listingsNext");
+    var hoverRaf = null;
+
+    function maxScroll() { return listingsGrid.scrollWidth - listingsGrid.clientWidth; }
+
+    function updateEdges() {
+      if (!prevBtn || !nextBtn) return;
+      var max = maxScroll();
+      var x = listingsGrid.scrollLeft;
+      prevBtn.hidden = max <= 4 || x <= 2;
+      nextBtn.hidden = max <= 4 || x >= max - 2;
+    }
+
+    function cardStep() {
+      var first = listingsGrid.querySelector(".listing");
+      if (!first) return listingsGrid.clientWidth;
+      var gap = parseFloat(getComputedStyle(listingsGrid).columnGap) || 0;
+      return first.getBoundingClientRect().width + gap;
+    }
+
+    function startHover(dir) {
+      stopHover();
+      var speed = 9; // px per frame
+      function loop() {
+        listingsGrid.scrollLeft += dir * speed;
+        hoverRaf = requestAnimationFrame(loop);
+      }
+      hoverRaf = requestAnimationFrame(loop);
+    }
+    function stopHover() {
+      if (hoverRaf) { cancelAnimationFrame(hoverRaf); hoverRaf = null; }
+    }
+
+    if (prevBtn && nextBtn) {
+      [["prev", prevBtn, -1], ["next", nextBtn, 1]].forEach(function (cfg) {
+        var btn = cfg[1], dir = cfg[2];
+        btn.addEventListener("mouseenter", function () { startHover(dir); });
+        btn.addEventListener("mouseleave", stopHover);
+        btn.addEventListener("click", function () {
+          stopHover();
+          listingsGrid.scrollBy({ left: dir * cardStep(), behavior: "smooth" });
+        });
+      });
+      listingsGrid.addEventListener("scroll", updateEdges, { passive: true });
+      window.addEventListener("resize", updateEdges);
     }
 
     // Minimal RFC-4180-ish CSV parser (handles quoted commas + newlines).
