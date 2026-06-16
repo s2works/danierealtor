@@ -619,6 +619,7 @@ body.menu-open::before {
 .listing__status--sold    { background: #9a3b3b; }
 
 .listing__body { padding: 1.3rem 1.4rem 1.5rem; display: flex; flex-direction: column; gap: 0.55rem; flex: 1; }
+.listing__type { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent-deep); margin: 0; }
 .listing__price { font-family: var(--font-serif); font-size: 1.6rem; font-weight: 600; color: var(--ink); line-height: 1; }
 .listing__addr { font-size: 1.05rem; margin: 0; color: var(--text); }
 .listing__city { font-size: 0.85rem; color: var(--muted); margin: 0; text-transform: uppercase; letter-spacing: 0.08em; }

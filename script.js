@@ -217,15 +217,19 @@
       var linkRow = hasLink
         ? '<a class="listing__link" href="' + esc(it.link) + '" target="_blank" rel="noopener">View details ↗</a>'
         : "";
+      // Location line: "City, Province  ·  Postal"
+      var place = [it.city, it.province].filter(Boolean).join(", ");
+      if (it.postal) { place += (place ? " · " : "") + it.postal; }
       return '<article class="listing reveal">' +
           openTag +
             '<img src="' + esc(img) + '" alt="' + esc(it.address || "Listing") + '" loading="lazy" />' +
             status +
           closeTag +
           '<div class="listing__body">' +
+            (it.type ? '<p class="listing__type">' + esc(it.type) + "</p>" : "") +
             (it.price ? '<div class="listing__price">' + esc(money(it.price)) + "</div>" : "") +
             (it.address ? '<h3 class="listing__addr">' + esc(it.address) + "</h3>" : "") +
-            (it.city ? '<p class="listing__city">' + esc(it.city) + "</p>" : "") +
+            (place ? '<p class="listing__city">' + esc(place) + "</p>" : "") +
             (specs.length ? '<ul class="listing__specs">' + specs.join("") + "</ul>" : "") +
             linkRow +
           "</div>" +
@@ -275,9 +279,12 @@
       }
       var col = {
         status:   idx(["status"]),
+        type:     idx(["type", "property type"]),
         price:    idx(["price"]),
         address:  idx(["address", "street"]),
         city:     idx(["city", "town"]),
+        province: idx(["province", "prov", "state"]),
+        postal:   idx(["postal code", "postal", "zip", "postal/zip"]),
         beds:     idx(["beds", "bedrooms", "bed"]),
         baths:    idx(["baths", "bathrooms", "bath"]),
         sqft:     idx(["sqft", "sq ft", "size", "square feet"]),
@@ -297,8 +304,9 @@
           if (f && ["no", "false", "0", "hide"].indexOf(f) !== -1) continue;
         }
         out.push({
-          status: get(col.status), price: price, address: address,
-          city: get(col.city), beds: get(col.beds), baths: get(col.baths),
+          status: get(col.status), type: get(col.type), price: price, address: address,
+          city: get(col.city), province: get(col.province), postal: get(col.postal),
+          beds: get(col.beds), baths: get(col.baths),
           sqft: get(col.sqft), image: get(col.image), link: get(col.link),
           order: col.order !== -1 ? parseFloat(get(col.order)) : NaN
         });
