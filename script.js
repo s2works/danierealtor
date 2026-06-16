@@ -193,6 +193,17 @@
       if (isNaN(n)) return s; // already formatted text — show as-is
       return "$" + n.toLocaleString("en-CA", { maximumFractionDigits: 0 });
     }
+    // Google Drive "share" links don't render as <img>. Rewrite them to
+    // Drive's image endpoint so a pasted Drive link still previews.
+    function normalizeImg(url) {
+      if (!url) return "";
+      var u = String(url).trim();
+      if (u.indexOf("drive.google.com") !== -1) {
+        var m = u.match(/\/d\/([-\w]{20,})/) || u.match(/[?&]id=([-\w]{20,})/);
+        if (m) { return "https://drive.google.com/thumbnail?id=" + m[1] + "&sz=w1200"; }
+      }
+      return u;
+    }
     function statusClass(s) {
       var k = (s || "").toLowerCase();
       if (k.indexOf("sold") !== -1) return "sold";
@@ -205,7 +216,7 @@
       if (it.beds)  specs.push("<li>" + esc(it.beds) + " bd</li>");
       if (it.baths) specs.push("<li>" + esc(it.baths) + " ba</li>");
       if (it.sqft)  specs.push("<li>" + esc(it.sqft) + " sq ft</li>");
-      var img = it.image || FALLBACK_IMG;
+      var img = normalizeImg(it.image) || FALLBACK_IMG;
       var hasLink = !!it.link;
       var openTag = hasLink
         ? '<a class="listing__media" href="' + esc(it.link) + '" target="_blank" rel="noopener">'
