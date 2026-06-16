@@ -169,7 +169,7 @@
        3. SHEET_NAME is the tab name; leave "" to use the first tab.
        Until a real ID is set, sample cards are shown so the design
        is visible. ============================================== */
-    var SHEET_ID = "YOUR_SHEET_ID";
+    var SHEET_ID = "1OOLIfLYZGfsI71B7YGNA2uDpQgwOzznWXO3P-8brbBM";
     var SHEET_NAME = "";
 
     var emptyEl = document.getElementById("listingsEmpty");
