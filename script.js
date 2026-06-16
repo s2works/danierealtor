@@ -204,6 +204,17 @@
       }
       return u;
     }
+    // Ensure a listing link is absolute. A value like "www.realtor.ca/..."
+    // (no protocol) would otherwise resolve relative to this site and go
+    // to the wrong place — prepend https:// when a scheme is missing.
+    function normalizeLink(url) {
+      if (!url) return "";
+      var u = String(url).trim();
+      if (!u) return "";
+      if (/^https?:\/\//i.test(u)) return u;
+      if (/^\/\//.test(u)) return "https:" + u;
+      return "https://" + u.replace(/^\/+/, "");
+    }
     function statusClass(s) {
       var k = (s || "").toLowerCase();
       if (k.indexOf("sold") !== -1) return "sold";
@@ -318,7 +329,7 @@
           status: get(col.status), type: get(col.type), price: price, address: address,
           city: get(col.city), province: get(col.province), postal: get(col.postal),
           beds: get(col.beds), baths: get(col.baths),
-          sqft: get(col.sqft), image: get(col.image), link: get(col.link),
+          sqft: get(col.sqft), image: get(col.image), link: normalizeLink(get(col.link)),
           order: col.order !== -1 ? parseFloat(get(col.order)) : NaN
         });
       }
