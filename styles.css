@@ -567,8 +567,9 @@ body.menu-open::before {
 /* ---------- Recent listings (Google Sheet driven) ---------- */
 /* Tighter top gap after the Approach section (still comfortable on mobile) */
 .listings.section { padding-top: clamp(2.25rem, 4.5vw, 4rem); }
-.listings__head { max-width: 720px; margin-inline: auto; text-align: center; }
-.listings__head .eyebrow { justify-content: center; }
+.listings__head { display: block; max-width: 720px; margin: 0 auto 3rem; text-align: center; }
+.listings__head .section__title { margin-bottom: 1.4rem; }
+.listings__head .eyebrow { display: inline-flex; justify-content: center; }
 .listings__lead { color: var(--muted); font-size: 1.05rem; margin: 0 auto; }
 
 .listings__carousel { position: relative; margin-top: clamp(2rem, 4vw, 3rem); }
@@ -988,7 +989,7 @@ body.menu-open::before {
   }
   .nav__toggle { display: flex; z-index: 950; }
   .brand__sub { display: none; }
-  .listings__head { flex-direction: column; align-items: flex-start; }
+  .listings__head { text-align: center; }
   .carousel__arrow { display: none; }
   .areas__grid { grid-template-columns: 1fr; }
 }
